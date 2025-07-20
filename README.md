@@ -2,9 +2,42 @@
 
 A powerful web application for managing CSS custom properties (CSS variables) with a focus on design systems and the Bricks WordPress page builder. Organize, edit, and export your design tokens with an intuitive interface.
 
+## 🚀 Get Started
+
+**Try it now:** [https://bricksvariablemanager.sevalla.page/](https://bricksvariablemanager.sevalla.page/)
+
+## Why Use This Instead of Bricks Native Variable Manager?
+
+While Bricks has a built-in variable manager, this standalone tool offers several key advantages:
+
+### 🎯 **Enhanced Export Capabilities**
+
+- **CSS Export**: Export your variables as clean, production-ready CSS - something the native Bricks manager can't do
+- **Multiple Formats**: Get your variables in both JSON (for Bricks) and CSS (for any project)
+
+### 🔍 **Superior Search Experience**
+
+- **Real-time Search**: Instant filtering as you type, across both variable names and values
+- **Smart Results**: Search results are organized and highlighted for quick identification
+- **No Lag**: Unlike Bricks' search, our implementation is lightning-fast and responsive
+
+### 💡 **Intuitive Interface Design**
+
+- **Visual Organization**: Clear grid and list views with color swatches and visual indicators
+- **Bulk Operations**: Select and manage multiple variables at once with checkboxes
+- **Drag & Drop**: Reorder variables and categories with smooth, intuitive interactions
+- **Modern UX**: Clean, distraction-free interface optimized for productivity
+
+### 🔧 **Advanced Management Features**
+
+- **Better Categorization**: More flexible category management with bulk move operations
+- **Import from CSS**: Parse existing CSS files to extract variables automatically
+- **Backup & Restore**: Export/import your entire variable collection for safekeeping
+
 ## Features
 
 ### 🎨 Variable Management
+
 - **Visual Interface**: Grid and row view modes for different workflows
 - **Color Support**: Built-in color picker with visual swatches
 - **Bulk Operations**: Select multiple variables for batch editing and categorization
@@ -12,17 +45,20 @@ A powerful web application for managing CSS custom properties (CSS variables) wi
 - **Drag & Drop**: Reorder variables and categories with intuitive sorting
 
 ### 📁 Organization
+
 - **Categories**: Organize variables into custom categories
 - **Smart Filtering**: View all variables or filter by specific categories
 - **Uncategorized Handling**: Automatic handling of uncategorized variables
 
 ### 🔄 Import & Export
+
 - **CSS Import**: Parse existing CSS code to extract custom properties
 - **JSON Import/Export**: Bricks-compatible JSON format for seamless integration
 - **CSS Export**: Generate clean CSS output for production use
 - **Local Storage**: Automatic saving and restoration of your work
 
 ### ⚡ User Experience
+
 - **Dark Theme**: Modern dark interface optimized for long coding sessions
 - **Responsive Design**: Works across different screen sizes
 - **Keyboard Shortcuts**: Efficient workflows with keyboard support
@@ -32,6 +68,7 @@ A powerful web application for managing CSS custom properties (CSS variables) wi
 ## Getting Started
 
 ### Quick Start
+
 1. Open `index.html` in your web browser
 2. Start by importing existing CSS variables or create new ones manually
 3. Organize variables into categories for better management
@@ -40,16 +77,19 @@ A powerful web application for managing CSS custom properties (CSS variables) wi
 ### Importing Variables
 
 #### From CSS Code
+
 1. Click "Import from Code"
 2. Paste your CSS containing custom properties (`:root { --variable: value; }`)
 3. Variables are automatically parsed and added to your collection
 
 #### From Bricks JSON
-1. Click "Import JSON" 
+
+1. Click "Import JSON"
 2. Upload or drag & drop your Bricks JSON export file
 3. Variables are imported with their existing organization
 
 ### Creating Variables
+
 1. Click "Add Variable"
 2. Enter a name (e.g., `primary-500`, `text-heading`)
 3. Set the value (colors, sizes, fonts, etc.)
@@ -57,6 +97,7 @@ A powerful web application for managing CSS custom properties (CSS variables) wi
 5. Use the color picker for color values
 
 ### Organization Tips
+
 - Create categories like "Colors", "Typography", "Spacing", "Shadows"
 - Use consistent naming conventions (e.g., `color-primary-500`)
 - Group related variables together for easier management
@@ -65,6 +106,7 @@ A powerful web application for managing CSS custom properties (CSS variables) wi
 ## Technical Details
 
 ### File Structure
+
 ```
 ├── index.html          # Main application interface
 ├── app.js             # Core application logic and state management
@@ -73,16 +115,19 @@ A powerful web application for managing CSS custom properties (CSS variables) wi
 ```
 
 ### Dependencies
+
 - **SortableJS**: Drag and drop functionality
 - **CodeMirror**: Code editor with syntax highlighting
 - **Modern Browser**: ES6+ features, CSS Grid, Flexbox
 
 ### Browser Support
+
 - Chrome/Edge 88+
 - Firefox 85+
 - Safari 14+
 
 ### Data Storage
+
 - Uses browser localStorage for persistence
 - Automatic save/restore on page reload
 - Export options for backup and sharing
@@ -103,6 +148,7 @@ The application works with standard CSS custom properties:
 ## Bricks Integration
 
 Perfect for Bricks WordPress page builder users:
+
 - Import existing Bricks variable exports
 - Export in Bricks-compatible JSON format
 - Maintain category organization
@@ -111,16 +157,19 @@ Perfect for Bricks WordPress page builder users:
 ## Advanced Features
 
 ### Bulk Operations
+
 - Select multiple variables with checkboxes
 - Move variables between categories
 - Delete multiple variables at once
 - Clear selections with one click
 
 ### View Modes
+
 - **Grid View**: Compact cards showing variable details
 - **Row View**: List format optimized for reordering
 
 ### Search & Filter
+
 - Search by variable name or value
 - Results grouped by category
 - Real-time filtering as you type
