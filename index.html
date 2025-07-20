@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bricks Variable Manager</title>
+    
+    <!-- External Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.2/Sortable.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/dracula.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/css/css.min.js"></script>
+
+    <!-- Your Stylesheet -->
+    <link rel="stylesheet" href="app.css">
+</head>
+<body>
+
+    <div id="app-container" class="app-container">
+        <!-- APP HEADER -->
+        <header class="main-header">
+            <h1 class="header-title">Bricks Variable Manager</h1>
+            <div class="search-bar">
+                <i id="search-icon" class="icon"></i>
+                <input type="text" id="search-input" placeholder="Search all variables...">
+                <button class="icon-btn" id="clear-search-btn" style="display: none;"><i class="icon" id="icon-x"></i></button>
+            </div>
+            <div class="header-actions">
+                <button id="import-code-btn" class="main-btn btn-secondary">Import from Code</button>
+                <button id="import-json-btn" class="main-btn btn-secondary">Import JSON</button>
+                <button id="export-json-btn" class="main-btn btn-primary">Export JSON</button>
+                <button id="export-css-btn" class="main-btn btn-primary">Export CSS</button>
+                <div style="width: 1px; height: 24px; background: var(--border-primary);"></div>
+                <button id="reset-app-btn" class="icon-btn" title="Reset App"><i id="icon-reset" class="icon"></i></button>
+            </div>
+        </header>
+
+        <!-- MAIN CONTENT -->
+        <main class="main-content">
+            <!-- Left Panel: Categories -->
+            <div id="categories-panel" class="panel categories-panel">
+                <div class="panel-header">
+                    <div class="panel-title">Categories</div>
+                    <div class="category-panel-actions">
+                        <button class="icon-btn" id="clear-category-selection-btn" title="Clear selection"><i class="icon" id="icon-cat-clear-selection"></i></button>
+                        <button class="icon-btn" id="bulk-delete-category-btn" title="Delete selected categories"><i class="icon" id="icon-cat-bulk-delete"></i></button>
+                    </div>
+                    <button id="add-category-btn" class="main-btn btn-secondary" style="padding: 4px 10px;">Add new</button>
+                </div>
+                <div id="categories-list" class="panel-content"></div>
+            </div>
+
+            <!-- Center Panel: Variables -->
+            <div id="variables-panel" class="panel variables-panel">
+                <header class="panel-header variables-panel-header">
+                    <div id="variables-title" class="panel-title">Variables (0)</div>
+                    <div class="header-actions">
+                        <input type="checkbox" id="select-all-vars-checkbox" title="Select all in view">
+                        <button class="icon-btn" id="clear-selection-btn" title="Clear selection"><i class="icon" id="icon-clear-selection"></i></button>
+                        <button class="icon-btn" id="bulk-delete-btn" title="Delete selected"><i class="icon" id="icon-bulk-delete"></i></button>
+                        <div style="width: 1px; height: 20px; background: var(--border-secondary); margin: 0 4px;"></div>
+                        <div class="view-toggle">
+                           <button class="icon-btn" id="view-grid-btn" title="Grid View"><i class="icon" id="icon-grid-view"></i></button>
+                           <button class="icon-btn" id="view-row-btn" title="Row View (for reordering)"><i class="icon" id="icon-row-view"></i></button>
+                        </div>
+                    </div>
+                     <button id="add-variable-btn" class="main-btn btn-primary" style="padding: 6px 12px;">Add Variable</button>
+                </header>
+                <div id="variables-canvas" class="variables-canvas"></div>
+            </div>
+
+            <!-- Right Panel: Properties -->
+            <div id="properties-panel" class="panel properties-panel">
+                <div class="panel-header">
+                    <div id="properties-title" class="panel-title">Selected (0)</div>
+                </div>
+                <div id="prop-tabs" class="prop-tabs">
+                    <div class="prop-tab active" data-tab="edit">Edit</div>
+                    <div class="prop-tab" data-tab="categorize">Categorize</div>
+                </div>
+                <div id="prop-edit-content" class="prop-content" data-tab-content="edit"></div>
+                <div id="prop-categorize-content" class="prop-content" data-tab-content="categorize" style="display: none;">
+                    <div class="form-group">
+                        <label for="move-category-select">Move selected to category:</label>
+                        <select id="move-category-select"></select>
+                    </div>
+                    <button id="apply-move-btn" class="main-btn btn-primary" style="width: 100%;">Move Variables</button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- MODALS -->
+    <!-- Add/Edit/Duplicate Variable Modal -->
+    <div id="variable-modal" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="variable-modal-title">Add Variable</h3>
+                <button class="close-btn" data-modal-close>×</button>
+            </div>
+            <form id="variable-form">
+                <input type="hidden" id="variable-id">
+                <div class="form-group">
+                    <label for="variable-name">Name (e.g., str-primary-500)</label>
+                    <input type="text" id="variable-name" required pattern="^[a-zA-Z0-9-]*$" title="Only letters, numbers, and hyphens are allowed.">
+                </div>
+                <div class="form-group">
+                    <label for="variable-value">Value</label>
+                    <div class="value-input-group">
+                        <input type="text" id="variable-value" required>
+                        <input type="color" id="variable-color-picker">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="variable-category">Category</label>
+                    <select id="variable-category" required></select>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="main-btn btn-secondary" data-modal-close>Cancel</button>
+                    <button type="submit" id="variable-modal-save-btn" class="main-btn btn-primary">Save Variable</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Delete Confirmation Modal -->
+    <div id="delete-confirm-modal" class="modal-overlay">
+         <div class="modal">
+            <div class="modal-header">
+                <h3 id="delete-confirm-title">Confirm Action</h3>
+                <button class="close-btn" data-modal-close>×</button>
+            </div>
+            <p id="delete-confirm-message">Are you sure?</p>
+            <div id="delete-confirm-details"></div>
+            <div class="modal-actions">
+                <button type="button" class="main-btn btn-secondary" id="delete-confirm-cancel-btn">Cancel</button>
+                <button id="delete-confirm-btn" class="main-btn" style="background-color: var(--accent-danger); color: var(--white);">Delete</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Code Modals (Import/Export) -->
+    <div id="code-modal" class="modal-overlay">
+        <div class="modal" style="max-width: 800px;">
+            <div class="modal-header">
+                <h3 id="code-modal-title">Code View</h3>
+                <button class="close-btn" data-modal-close>×</button>
+            </div>
+            <p id="code-modal-desc" style="margin-bottom: 1rem;"></p>
+            <textarea id="css-editor"></textarea>
+            <div class="modal-actions" id="code-modal-actions"></div>
+        </div>
+    </div>
+    
+    <!-- Import JSON Modal -->
+    <div id="import-json-modal" class="modal-overlay">
+        <div class="modal">
+             <div class="modal-header">
+                <h3>Import Bricks JSON</h3>
+                <button class="close-btn" data-modal-close>×</button>
+            </div>
+            <input type="file" id="json-file-input" accept=".json" hidden>
+            <div id="upload-zone" class="upload-zone">
+                <p style="font-size: 2rem; margin: 0;">📤</p>
+                <p><strong>Drag & drop your JSON file here</strong><br>or click to select a file</p>
+            </div>
+             <div class="modal-actions">
+                <button type="button" class="main-btn btn-secondary" data-modal-close>Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container"></div>
+
+    <!-- Your Script -->
+    <script src="app.js"></script>
+
+</body>
+</html>
