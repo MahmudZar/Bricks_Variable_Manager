@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
         row: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="7" x="3" y="3" rx="1"></rect><rect width="7" height="7" x="3" y="14" rx="1"></rect><path d="M14 4h7"></path><path d="M14 9h7"></path><path d="M14 15h7"></path><path d="M14 20h7"></path></svg>`,
     };
     
-    let state, dom, cssEditor, categorySortable, variableSortable;
+    let state, dom, cssEditor, categorySortable, variableSortable, splitterInstance;
 
     // --- CORE & INITIALIZATION ---
     function init() {
@@ -23,6 +23,9 @@ document.addEventListener('DOMContentLoaded', () => {
         loadFromLocalStorage(); // This will override default state if data exists
         setupEventListeners();
         render();
+        
+        // Initialize splitters after initial render
+        setTimeout(initializeSplitters, 0);
     }
 
     function getInitialState() {
@@ -100,6 +103,61 @@ document.addEventListener('DOMContentLoaded', () => {
             uploadZone: document.getElementById('upload-zone'),
             jsonFileInput: document.getElementById('json-file-input'),
         };
+    }
+
+    function initializeSplitters() {
+        // Only initialize if not already created
+        if (splitterInstance) {
+            splitterInstance.destroy();
+        }
+        
+        // Don't initialize splitters if categories panel is hidden (during search)
+        if (dom.categoriesPanel.classList.contains('hidden')) {
+            return;
+        }
+        
+        const propertiesPanel = dom.propertiesPanel;
+        const isPropertiesVisible = propertiesPanel.classList.contains('visible');
+        
+        if (isPropertiesVisible) {
+            // Three-panel layout when properties panel is visible
+            splitterInstance = Split(['#categories-panel', '#variables-panel', '#properties-panel'], {
+                sizes: [25, 50, 25], // Initial percentages
+                minSize: [250, 300, 280], // Minimum sizes in pixels
+                gutterSize: 8, // Width of the drag handle
+                cursor: 'col-resize',
+                direction: 'horizontal',
+                onDragEnd: function(sizes) {
+                    // Optional: Save panel sizes to localStorage
+                    localStorage.setItem('bricksVarManager-panelSizes-3', JSON.stringify(sizes));
+                }
+            });
+            
+            // Restore saved sizes if they exist
+            const savedSizes = localStorage.getItem('bricksVarManager-panelSizes-3');
+            if (savedSizes) {
+                splitterInstance.setSizes(JSON.parse(savedSizes));
+            }
+        } else {
+            // Two-panel layout when properties panel is hidden
+            splitterInstance = Split(['#categories-panel', '#variables-panel'], {
+                sizes: [30, 70], // Initial percentages
+                minSize: [250, 300], // Minimum sizes
+                gutterSize: 8,
+                cursor: 'col-resize',
+                direction: 'horizontal',
+                onDragEnd: function(sizes) {
+                    // Save sizes for two-panel layout
+                    localStorage.setItem('bricksVarManager-panelSizes-2', JSON.stringify(sizes));
+                }
+            });
+            
+            // Restore saved sizes for two-panel layout
+            const savedSizes = localStorage.getItem('bricksVarManager-panelSizes-2');
+            if (savedSizes) {
+                splitterInstance.setSizes(JSON.parse(savedSizes));
+            }
+        }
     }
 
     function injectIcons() {
@@ -343,7 +401,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function renderPropertiesPanel() {
         const selectedCount = state.selectedVariableIds.size;
-        dom.propertiesPanel.classList.toggle('visible', selectedCount > 0);
+        const wasVisible = dom.propertiesPanel.classList.contains('visible');
+        const shouldBeVisible = selectedCount > 0;
+        
+        dom.propertiesPanel.classList.toggle('visible', shouldBeVisible);
+        
+        // Reinitialize splitters if visibility changed
+        if (wasVisible !== shouldBeVisible) {
+            setTimeout(initializeSplitters, 0); // Use setTimeout to ensure DOM updates complete
+        }
+        
         if (selectedCount === 0) return;
 
         dom.propertiesTitle.textContent = `Selected (${selectedCount})`;
@@ -438,12 +505,50 @@ document.addEventListener('DOMContentLoaded', () => {
         dom.uploadZone.addEventListener('click', () => dom.jsonFileInput.click());
         dom.jsonFileInput.addEventListener('change', e => handleJsonFile(e.target.files[0]));
         setupDragDrop(dom.uploadZone, handleJsonFile);
+        
+        // Handle window resize for splitters
+        window.addEventListener('resize', () => {
+            if (splitterInstance) {
+                // Split.js automatically handles resize, but we can trigger a refresh if needed
+                setTimeout(() => {
+                    if (splitterInstance.split) {
+                        splitterInstance.split.forEach(split => {
+                            if (split.refresh) split.refresh();
+                        });
+                    }
+                }, 100);
+            }
+        });
+        
+        // Clean up on page unload
+        window.addEventListener('beforeunload', () => {
+            if (splitterInstance) {
+                splitterInstance.destroy();
+            }
+        });
     }
     
     function handleSearch(e) {
         state.searchQuery = e.target.value.trim();
-        dom.categoriesPanel.classList.toggle('hidden', !!state.searchQuery);
+        const shouldHideCategories = !!state.searchQuery;
+        
         dom.clearSearchBtn.style.display = state.searchQuery ? 'inline-flex' : 'none';
+        
+        if (shouldHideCategories) {
+            // Hiding: destroy splitter first, then animate
+            if (splitterInstance) {
+                splitterInstance.destroy();
+                splitterInstance = null;
+            }
+            dom.categoriesPanel.classList.add('hidden');
+        } else {
+            // Showing: animate first, then reinitialize splitter
+            dom.categoriesPanel.classList.remove('hidden');
+            setTimeout(() => {
+                initializeSplitters();
+            }, 300); // Wait for animation to complete
+        }
+        
         render();
     }
     

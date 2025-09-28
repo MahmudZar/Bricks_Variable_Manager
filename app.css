@@ -226,13 +226,13 @@ input[type="checkbox"]:checked::before {
   opacity: 0.9;
 }
 .btn-secondary {
-    background-color: rgba(0, 74, 102, 0.5);
-    border: 1px solid rgba(0, 102, 138, 0.6);
-    color: var(--str-secondary-500);
+  background-color: rgba(0, 74, 102, 0.5);
+  border: 1px solid rgba(0, 102, 138, 0.6);
+  color: var(--str-secondary-500);
 }
 .btn-secondary:hover {
-    background-color: rgba(0, 74, 102, 0.5);
-    border: 1px solid rgba(0, 102, 138, 1);
+  background-color: rgba(0, 74, 102, 0.5);
+  border: 1px solid rgba(0, 102, 138, 1);
 }
 
 .main-content {
@@ -246,6 +246,41 @@ input[type="checkbox"]:checked::before {
   display: flex;
   flex-direction: column;
   background-color: var(--bg-primary);
+}
+
+/* Splitter Gutter Styles */
+.gutter {
+  background-color: var(--bg-main);
+  background-repeat: no-repeat;
+  background-position: 50%;
+  transition: background-color var(--transition-fast, 0.2s);
+  position: relative;
+}
+
+.gutter:hover {
+  background-color: var(--border-primary);
+}
+
+.gutter.gutter-horizontal {
+  cursor: col-resize;
+}
+
+.gutter.gutter-vertical {
+  cursor: row-resize;
+}
+
+/* Add visual indicator on hover */
+.gutter:hover::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 4px;
+  height: 20px;
+  background-color: var(--accent-primary);
+  border-radius: 2px;
+  opacity: 0.7;
 }
 .panel-header {
   display: flex;
@@ -270,14 +305,16 @@ input[type="checkbox"]:checked::before {
 
 /* Left Panel: Categories */
 .categories-panel {
-  width: 280px;
   flex-shrink: 0;
   border-right: 1px solid var(--border-primary);
   transition: margin-left 0.3s ease;
+  width: 280px; /* Fixed width for consistent animation */
+  overflow: hidden;
 }
 .categories-panel.hidden {
   margin-left: -280px;
 }
+
 .category-panel-actions {
   display: flex;
   gap: 8px;
@@ -336,7 +373,7 @@ input[type="checkbox"]:checked::before {
   fill: rgb(0 0 0 / 65%);
 }
 
-.category-item.active .icon-btn:hover{
+.category-item.active .icon-btn:hover {
   background: rgb(0 0 0 / 15%);
 }
 
@@ -344,15 +381,24 @@ input[type="checkbox"]:checked::before {
   fill: var(--str-primary-500);
 }
 
-.category-item.active.editing .icon-btn[data-action="delete-category"] svg path {
+.category-item.active.editing
+  .icon-btn[data-action="delete-category"]
+  svg
+  path {
   fill: var(--rose-400);
 }
 
-.category-item.active.new-category .icon-btn[data-action="save-category"] svg path {
+.category-item.active.new-category
+  .icon-btn[data-action="save-category"]
+  svg
+  path {
   fill: var(--str-primary-500);
 }
 
-.category-item.active.new-category .icon-btn[data-action="delete-category"] svg path {
+.category-item.active.new-category
+  .icon-btn[data-action="delete-category"]
+  svg
+  path {
   fill: var(--rose-400);
 }
 
@@ -363,8 +409,6 @@ input[type="checkbox"]:checked::before {
 .category-item.new-category .icon-btn[data-action="delete-category"] svg path {
   fill: var(--rose-400);
 }
-
-
 
 .category-name {
   flex-grow: 1;
@@ -391,8 +435,8 @@ input[type="checkbox"]:checked::before {
   color: var(--grey-450);
 }
 
-.category-item.active > .handle{
-    color: black;
+.category-item.active > .handle {
+  color: black;
 }
 
 .handle:active {
@@ -512,12 +556,12 @@ input[type="checkbox"]:checked::before {
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
-  background-color: rgba(26, 94, 45, 0.30);
+  background-color: rgba(26, 94, 45, 0.3);
   border: 1px solid rgba(38, 138, 64, 0.4);
   color: var(--str-primary-500);
 }
 .copy-btn:hover {
-  background-color: rgba(26, 94, 45, 0.40);
+  background-color: rgba(26, 94, 45, 0.4);
   border: 1px solid rgba(38, 138, 64, 0.6);
 }
 
@@ -642,7 +686,6 @@ input[type="checkbox"]:checked::before {
 
 /* Right Panel: Properties */
 .properties-panel {
-  width: 320px;
   flex-shrink: 0;
   border-left: 1px solid var(--border-primary);
   display: none;
@@ -792,6 +835,11 @@ input[type="checkbox"]:checked::before {
   border-radius: 6px;
   height: 300px;
 }
+
+.cm-s-dracula .CodeMirror-gutters,
+.cm-s-dracula.CodeMirror {
+  background-color: var(--grey-1000) !important;
+}
 #delete-confirm-details {
   max-height: 150px;
   overflow-y: auto;
@@ -808,131 +856,131 @@ input[type="checkbox"]:checked::before {
 
 /* Custom Select Styling */
 .custom-select-wrapper {
-    position: relative;
-    display: block;
-    width: 100%;
+  position: relative;
+  display: block;
+  width: 100%;
 }
 
 .custom-select {
-    appearance: none;
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-secondary);
-    border-radius: 6px;
-    padding: 10px 40px 10px 12px;
-    font-size: 14px;
-    color: var(--text-primary);
-    width: 100%;
-    cursor: pointer;
-    transition: all 0.2s;
-    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23736c64' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
-    background-repeat: no-repeat;
-    background-position: right 12px center;
-    background-size: 16px;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-secondary);
+  border-radius: 6px;
+  padding: 10px 40px 10px 12px;
+  font-size: 14px;
+  color: var(--text-primary);
+  width: 100%;
+  cursor: pointer;
+  transition: all 0.2s;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23736c64' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 16px;
 }
 
 .custom-select:focus {
-    border-color: var(--accent-primary);
-    outline: none;
-    box-shadow: 0 0 0 2px rgba(112, 214, 255, 0.2);
+  border-color: var(--accent-primary);
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(112, 214, 255, 0.2);
 }
 
 .custom-select:hover {
-    border-color: var(--grey-400);
+  border-color: var(--grey-400);
 }
 
 .custom-select option {
-    background: var(--bg-secondary);
-    color: var(--text-primary);
-    padding: 8px 12px;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  padding: 8px 12px;
 }
 
 /* Category Selection Group */
 .category-selection-group {
-    margin: 1.5rem 0;
-    padding: 1rem;
-    background: var(--bg-secondary);
-    border-radius: 8px;
-    border: 1px solid var(--border-secondary);
+  margin: 1.5rem 0;
+  padding: 1rem;
+  background: var(--bg-secondary);
+  border-radius: 8px;
+  border: 1px solid var(--border-secondary);
 }
 
 .category-selection-group label {
-    display: block;
-    font-weight: 600;
-    margin-bottom: 0.75rem;
-    color: var(--text-primary);
-    font-size: 14px;
+  display: block;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  color: var(--text-primary);
+  font-size: 14px;
 }
 
 .category-selection-help {
-    font-size: 12px;
-    color: var(--text-secondary);
-    margin-top: 0.5rem;
-    font-style: italic;
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-top: 0.5rem;
+  font-style: italic;
 }
 
 /* Multi-select category list for export */
 .category-export-list {
-    max-height: 300px;
-    overflow-y: auto;
-    border: 1px solid var(--border-secondary);
-    border-radius: 6px;
-    background: var(--bg-main);
+  max-height: 300px;
+  overflow-y: auto;
+  border: 1px solid var(--border-secondary);
+  border-radius: 6px;
+  background: var(--bg-main);
 }
 
 .category-export-header {
-    padding: 12px 16px;
-    border-bottom: 1px solid var(--border-secondary);
-    background: var(--bg-secondary);
-    font-weight: 600;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-secondary);
+  background: var(--bg-secondary);
+  font-weight: 600;
 }
 
 .category-export-header label {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin: 0;
-    cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  cursor: pointer;
 }
 
 .category-export-item {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 12px 16px;
-    border-bottom: 1px solid var(--border-primary);
-    cursor: pointer;
-    transition: background-color 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-primary);
+  cursor: pointer;
+  transition: background-color 0.2s;
 }
 
 .category-export-item:hover {
-    background: var(--bg-tertiary);
+  background: var(--bg-tertiary);
 }
 
 .category-export-item:last-child {
-    border-bottom: none;
+  border-bottom: none;
 }
 
 .category-export-left {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
 }
 
 .category-export-name {
-    font-weight: 500;
-    color: var(--text-primary);
+  font-weight: 500;
+  color: var(--text-primary);
 }
 
 .category-export-count {
-    font-size: 12px;
-    color: var(--text-secondary);
-    background: var(--grey-800);
-    padding: 2px 8px;
-    border-radius: 10px;
-    margin-left: auto;
+  font-size: 12px;
+  color: var(--text-secondary);
+  background: var(--grey-800);
+  padding: 2px 8px;
+  border-radius: 10px;
+  margin-left: auto;
 }
 
 /* --- Toast Notifications --- */
@@ -971,7 +1019,6 @@ input[type="checkbox"]:checked::before {
   color: var(--bg-main);
 }
 
-
 /* Modern CSS Scrollbar Styling (Firefox 64+) */
 * {
   /* Sets scrollbar width to thin across all elements */
@@ -984,20 +1031,22 @@ input[type="checkbox"]:checked::before {
 
 /* Main scrollbar track - the background area where the scrollbar moves */
 ::-webkit-scrollbar {
-  width: 8px;  /* Width for vertical scrollbars */
+  width: 8px; /* Width for vertical scrollbars */
   height: 8px; /* Height for horizontal scrollbars */
 }
 
 /* The draggable scrolling handle/thumb */
 ::-webkit-scrollbar-thumb {
-  background: var(--grey-700);    /* Dark grey thumb using CSS variable */
-  border-radius: 4px;             /* Rounded corners for modern look */
+  background: var(--grey-700); /* Dark grey thumb using CSS variable */
+  border-radius: 4px; /* Rounded corners for modern look */
   border: 1px solid var(--grey-900); /* Dark border using CSS variable */
 }
 
 /* Scrollbar thumb when being hovered over */
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--grey-600); /* Lighter grey on hover (assuming grey-600 is lighter than grey-700) */
+  background: var(
+    --grey-600
+  ); /* Lighter grey on hover (assuming grey-600 is lighter than grey-700) */
 }
 
 /* Scrollbar thumb when being actively dragged */
@@ -1007,8 +1056,8 @@ input[type="checkbox"]:checked::before {
 
 /* The track/background area of the scrollbar */
 ::-webkit-scrollbar-track {
-  background: var(--grey-900);   /* Dark background using CSS variable */
-  border-radius: 4px;            /* Rounded corners to match thumb */
+  background: var(--grey-900); /* Dark background using CSS variable */
+  border-radius: 4px; /* Rounded corners to match thumb */
 }
 
 /* The track when scrollbar is being hovered (optional enhancement) */
@@ -1031,8 +1080,8 @@ input[type="checkbox"]:checked::before {
 
 /* Hidden scrollbars but still scrollable (use sparingly) */
 .hidden-scrollbar {
-  -ms-overflow-style: none;  /* IE and Edge */
-  scrollbar-width: none;     /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
 }
 
 .hidden-scrollbar::-webkit-scrollbar {
