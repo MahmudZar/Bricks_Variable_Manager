@@ -595,15 +595,9 @@ input[type="checkbox"]:checked::before {
   border-radius: 4px;
   transition: background-color 0.2s, color 0.2s, stroke 0.2s;
 }
-.icon-btn svg {
-  /*stroke: var(--text-secondary);*/
-}
 .icon-btn:hover {
   background-color: var(--bg-tertiary);
   color: var(--text-primary);
-}
-.icon-btn:hover svg {
-  /* stroke: var(--text-primary); */
 }
 .icon-btn:hover svg path[fill] {
   fill: var(--grey-450);
@@ -685,7 +679,8 @@ input[type="checkbox"]:checked::before {
   margin-bottom: 8px;
 }
 .form-group input,
-.form-group select {
+.form-group select,
+.form-control {
   width: 100%;
   padding: 10px 12px;
   background-color: var(--bg-secondary);
@@ -695,7 +690,8 @@ input[type="checkbox"]:checked::before {
   transition: border-color 0.2s;
 }
 .form-group input:focus,
-.form-group select:focus {
+.form-group select:focus,
+.form-control:focus {
   border-color: var(--accent-primary);
 }
 
@@ -808,6 +804,135 @@ input[type="checkbox"]:checked::before {
 #delete-confirm-details ul {
   list-style: none;
   padding-left: 0;
+}
+
+/* Custom Select Styling */
+.custom-select-wrapper {
+    position: relative;
+    display: block;
+    width: 100%;
+}
+
+.custom-select {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-secondary);
+    border-radius: 6px;
+    padding: 10px 40px 10px 12px;
+    font-size: 14px;
+    color: var(--text-primary);
+    width: 100%;
+    cursor: pointer;
+    transition: all 0.2s;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23736c64' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 16px;
+}
+
+.custom-select:focus {
+    border-color: var(--accent-primary);
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(112, 214, 255, 0.2);
+}
+
+.custom-select:hover {
+    border-color: var(--grey-400);
+}
+
+.custom-select option {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    padding: 8px 12px;
+}
+
+/* Category Selection Group */
+.category-selection-group {
+    margin: 1.5rem 0;
+    padding: 1rem;
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    border: 1px solid var(--border-secondary);
+}
+
+.category-selection-group label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    color: var(--text-primary);
+    font-size: 14px;
+}
+
+.category-selection-help {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-top: 0.5rem;
+    font-style: italic;
+}
+
+/* Multi-select category list for export */
+.category-export-list {
+    max-height: 300px;
+    overflow-y: auto;
+    border: 1px solid var(--border-secondary);
+    border-radius: 6px;
+    background: var(--bg-main);
+}
+
+.category-export-header {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border-secondary);
+    background: var(--bg-secondary);
+    font-weight: 600;
+}
+
+.category-export-header label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    cursor: pointer;
+}
+
+.category-export-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border-primary);
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.category-export-item:hover {
+    background: var(--bg-tertiary);
+}
+
+.category-export-item:last-child {
+    border-bottom: none;
+}
+
+.category-export-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+}
+
+.category-export-name {
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.category-export-count {
+    font-size: 12px;
+    color: var(--text-secondary);
+    background: var(--grey-800);
+    padding: 2px 8px;
+    border-radius: 10px;
+    margin-left: auto;
 }
 
 /* --- Toast Notifications --- */

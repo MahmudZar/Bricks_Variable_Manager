@@ -1,45 +1,50 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
+
     <!-- Primary Meta Tags -->
     <title>Bricks Variable Manager - CSS Custom Properties Management Tool</title>
     <meta name="title" content="Bricks Variable Manager - CSS Custom Properties Management Tool">
-    <meta name="description" content="A powerful web application for managing CSS custom properties and design tokens. Perfect for Bricks WordPress users and design system management with import/export capabilities.">
-    <meta name="keywords" content="CSS variables, custom properties, design tokens, Bricks WordPress, design system, CSS management, web development tools">
+    <meta name="description"
+        content="A powerful web application for managing CSS custom properties and design tokens. Perfect for Bricks WordPress users and design system management with import/export capabilities.">
+    <meta name="keywords"
+        content="CSS variables, custom properties, design tokens, Bricks WordPress, design system, CSS management, web development tools">
     <meta name="author" content="Bricks Variable Manager">
     <meta name="robots" content="index, follow">
-    
+
     <!-- Theme Color -->
     <meta name="theme-color" content="#70d6ff">
     <meta name="msapplication-TileColor" content="#70d6ff">
-    
+
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="">
     <meta property="og:title" content="Bricks Variable Manager - CSS Custom Properties Management Tool">
-    <meta property="og:description" content="A powerful web application for managing CSS custom properties and design tokens. Perfect for Bricks WordPress users and design system management.">
+    <meta property="og:description"
+        content="A powerful web application for managing CSS custom properties and design tokens. Perfect for Bricks WordPress users and design system management.">
     <meta property="og:image" content="./og-image.png">
     <meta property="og:site_name" content="Bricks Variable Manager">
-    
+
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image">
     <meta property="twitter:url" content="">
     <meta property="twitter:title" content="Bricks Variable Manager - CSS Custom Properties Management Tool">
-    <meta property="twitter:description" content="A powerful web application for managing CSS custom properties and design tokens. Perfect for Bricks WordPress users and design system management.">
+    <meta property="twitter:description"
+        content="A powerful web application for managing CSS custom properties and design tokens. Perfect for Bricks WordPress users and design system management.">
     <meta property="twitter:image" content="./og-image.png">
-    
+
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="./assets/icons/favicon.png">
     <link rel="apple-touch-icon" href="./assets/icons/favicon.png">
     <link rel="manifest" href="./site.webmanifest">
-    
+
     <!-- Preconnect to external domains for performance -->
     <link rel="preconnect" href="https://cdnjs.cloudflare.com">
     <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
-    
+
     <!-- External Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.2/Sortable.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
@@ -50,6 +55,7 @@
     <!-- Your Stylesheet -->
     <link rel="stylesheet" href="app.css">
 </head>
+
 <body>
 
     <div id="app-container" class="app-container">
@@ -59,7 +65,8 @@
             <div class="search-bar">
                 <i id="search-icon" class="icon"></i>
                 <input type="text" id="search-input" placeholder="Search all variables...">
-                <button class="icon-btn" id="clear-search-btn" style="display: none;"><i class="icon" id="icon-x"></i></button>
+                <button class="icon-btn" id="clear-search-btn" style="display: none;"><i class="icon"
+                        id="icon-x"></i></button>
             </div>
             <div class="header-actions">
                 <button id="import-code-btn" class="main-btn btn-secondary">Import from Code</button>
@@ -67,7 +74,8 @@
                 <button id="export-json-btn" class="main-btn btn-primary">Export JSON</button>
                 <button id="export-css-btn" class="main-btn btn-primary">Export CSS</button>
                 <div style="width: 1px; height: 24px; background: var(--border-primary);"></div>
-                <button id="reset-app-btn" class="icon-btn" title="Reset App"><i id="icon-reset" class="icon"></i></button>
+                <button id="reset-app-btn" class="icon-btn" title="Reset App"><i id="icon-reset"
+                        class="icon"></i></button>
             </div>
         </header>
 
@@ -78,10 +86,13 @@
                 <div class="panel-header">
                     <div class="panel-title">Categories</div>
                     <div class="category-panel-actions">
-                        <button class="icon-btn" id="clear-category-selection-btn" title="Clear selection"><i class="icon" id="icon-cat-clear-selection"></i></button>
-                        <button class="icon-btn" id="bulk-delete-category-btn" title="Delete selected categories"><i class="icon" id="icon-cat-bulk-delete"></i></button>
+                        <button class="icon-btn" id="clear-category-selection-btn" title="Clear selection"><i
+                                class="icon" id="icon-cat-clear-selection"></i></button>
+                        <button class="icon-btn" id="bulk-delete-category-btn" title="Delete selected categories"><i
+                                class="icon" id="icon-cat-bulk-delete"></i></button>
                     </div>
-                    <button id="add-category-btn" class="main-btn btn-secondary" style="padding: 4px 10px;">Add new</button>
+                    <button id="add-category-btn" class="main-btn btn-secondary" style="padding: 4px 10px;">Add
+                        new</button>
                 </div>
                 <div id="categories-list" class="panel-content"></div>
             </div>
@@ -92,15 +103,21 @@
                     <div id="variables-title" class="panel-title">Variables (0)</div>
                     <div class="header-actions">
                         <input type="checkbox" id="select-all-vars-checkbox" title="Select all in view">
-                        <button class="icon-btn" id="clear-selection-btn" title="Clear selection"><i class="icon" id="icon-clear-selection"></i></button>
-                        <button class="icon-btn" id="bulk-delete-btn" title="Delete selected"><i class="icon" id="icon-bulk-delete"></i></button>
-                        <div style="width: 1px; height: 20px; background: var(--border-secondary); margin: 0 4px;"></div>
+                        <button class="icon-btn" id="clear-selection-btn" title="Clear selection"><i class="icon"
+                                id="icon-clear-selection"></i></button>
+                        <button class="icon-btn" id="bulk-delete-btn" title="Delete selected"><i class="icon"
+                                id="icon-bulk-delete"></i></button>
+                        <div style="width: 1px; height: 20px; background: var(--border-secondary); margin: 0 4px;">
+                        </div>
                         <div class="view-toggle">
-                           <button class="icon-btn" id="view-grid-btn" title="Grid View"><i class="icon" id="icon-grid-view"></i></button>
-                           <button class="icon-btn" id="view-row-btn" title="Row View (for reordering)"><i class="icon" id="icon-row-view"></i></button>
+                            <button class="icon-btn" id="view-grid-btn" title="Grid View"><i class="icon"
+                                    id="icon-grid-view"></i></button>
+                            <button class="icon-btn" id="view-row-btn" title="Row View (for reordering)"><i class="icon"
+                                    id="icon-row-view"></i></button>
                         </div>
                     </div>
-                     <button id="add-variable-btn" class="main-btn btn-primary" style="padding: 6px 12px;">Add Variable</button>
+                    <button id="add-variable-btn" class="main-btn btn-primary" style="padding: 6px 12px;">Add
+                        Variable</button>
                 </header>
                 <div id="variables-canvas" class="variables-canvas"></div>
             </div>
@@ -115,12 +132,14 @@
                     <div class="prop-tab" data-tab="categorize">Categorize</div>
                 </div>
                 <div id="prop-edit-content" class="prop-content" data-tab-content="edit"></div>
-                <div id="prop-categorize-content" class="prop-content" data-tab-content="categorize" style="display: none;">
+                <div id="prop-categorize-content" class="prop-content" data-tab-content="categorize"
+                    style="display: none;">
                     <div class="form-group">
                         <label for="move-category-select">Move selected to category:</label>
                         <select id="move-category-select"></select>
                     </div>
-                    <button id="apply-move-btn" class="main-btn btn-primary" style="width: 100%;">Move Variables</button>
+                    <button id="apply-move-btn" class="main-btn btn-primary" style="width: 100%;">Move
+                        Variables</button>
                 </div>
             </div>
         </main>
@@ -138,7 +157,8 @@
                 <input type="hidden" id="variable-id">
                 <div class="form-group">
                     <label for="variable-name">Name (e.g., str-primary-500)</label>
-                    <input type="text" id="variable-name" required pattern="^[a-zA-Z0-9-]*$" title="Only letters, numbers, and hyphens are allowed.">
+                    <input type="text" id="variable-name" required pattern="^[a-zA-Z0-9-]*$"
+                        title="Only letters, numbers, and hyphens are allowed.">
                 </div>
                 <div class="form-group">
                     <label for="variable-value">Value</label>
@@ -153,15 +173,16 @@
                 </div>
                 <div class="modal-actions">
                     <button type="button" class="main-btn btn-secondary" data-modal-close>Cancel</button>
-                    <button type="submit" id="variable-modal-save-btn" class="main-btn btn-primary">Save Variable</button>
+                    <button type="submit" id="variable-modal-save-btn" class="main-btn btn-primary">Save
+                        Variable</button>
                 </div>
             </form>
         </div>
     </div>
-    
+
     <!-- Delete Confirmation Modal -->
     <div id="delete-confirm-modal" class="modal-overlay">
-         <div class="modal">
+        <div class="modal">
             <div class="modal-header">
                 <h3 id="delete-confirm-title">Confirm Action</h3>
                 <button class="close-btn" data-modal-close>×</button>
@@ -170,11 +191,12 @@
             <div id="delete-confirm-details"></div>
             <div class="modal-actions">
                 <button type="button" class="main-btn btn-secondary" id="delete-confirm-cancel-btn">Cancel</button>
-                <button id="delete-confirm-btn" class="main-btn" style="background-color: var(--accent-danger); color: var(--white);">Delete</button>
+                <button id="delete-confirm-btn" class="main-btn"
+                    style="background-color: var(--accent-danger); color: var(--white);">Delete</button>
             </div>
         </div>
     </div>
-    
+
     <!-- Code Modals (Import/Export) -->
     <div id="code-modal" class="modal-overlay">
         <div class="modal" style="max-width: 800px;">
@@ -187,11 +209,11 @@
             <div class="modal-actions" id="code-modal-actions"></div>
         </div>
     </div>
-    
+
     <!-- Import JSON Modal -->
     <div id="import-json-modal" class="modal-overlay">
         <div class="modal">
-             <div class="modal-header">
+            <div class="modal-header">
                 <h3>Import Bricks JSON</h3>
                 <button class="close-btn" data-modal-close>×</button>
             </div>
@@ -200,7 +222,7 @@
                 <p style="font-size: 2rem; margin: 0;">📤</p>
                 <p><strong>Drag & drop your JSON file here</strong><br>or click to select a file</p>
             </div>
-             <div class="modal-actions">
+            <div class="modal-actions">
                 <button type="button" class="main-btn btn-secondary" data-modal-close>Cancel</button>
             </div>
         </div>
@@ -213,4 +235,5 @@
     <script src="app.js"></script>
 
 </body>
+
 </html>
