@@ -638,6 +638,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 state.activeCategoryId = 'all';
             }
             state.selectedCategoryIds.clear();
+            cleanupDynamicModals(); // Clean up any open modals since categories changed
             saveAndRender(`${count} categories and their variables deleted.`);
         }, null, details);
     }
@@ -648,6 +649,7 @@ document.addEventListener('DOMContentLoaded', () => {
             'This will permanently delete all your categories and variables from this browser. Are you sure you want to proceed?',
             () => {
                 localStorage.removeItem('bricksVarManager');
+                cleanupDynamicModals(); // Clean up any open modals
                 showToast('Application has been reset.', 'success');
                 setTimeout(() => {
                    state = getInitialState();
@@ -667,6 +669,7 @@ document.addEventListener('DOMContentLoaded', () => {
             category.name = newName;
             delete category.isNew;
             state.editingCategoryId = null;
+            cleanupDynamicModals(); // Clean up any open modals since categories changed
             saveAndRender(`Category saved as "${newName}"`, 'success');
         } else { cancelCategoryEdit(id); }
     }
@@ -689,6 +692,7 @@ document.addEventListener('DOMContentLoaded', () => {
             state.data.variables = state.data.variables.filter(v => v.category !== id);
             state.data.categories = state.data.categories.filter(c => c.id !== id);
             if (state.activeCategoryId === id) state.activeCategoryId = 'all';
+            cleanupDynamicModals(); // Clean up any open modals since categories changed
             saveAndRender(`Category "${category.name}" and its variables deleted.`);
         });
     }
@@ -736,8 +740,84 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => { toast.classList.remove('show'); toast.addEventListener('transitionend', () => toast.remove()); }, 3000);
     }
     
-    function openModal(id) { document.getElementById(id).classList.add('visible'); }
-    function closeModal(id) { document.getElementById(id).classList.remove('visible'); }
+    function openModal(id) { 
+        const modal = document.getElementById(id);
+        if (modal) {
+            modal.classList.add('visible'); 
+        }
+    }
+    
+    function closeModal(id) { 
+        const modal = document.getElementById(id);
+        if (modal) {
+            modal.classList.remove('visible'); 
+        }
+    }
+    
+    function cleanupDynamicModals() {
+        // Clean up any dynamically created modals
+        const dynamicModals = [
+            'css-export-selection-modal',
+            'json-export-selection-modal', 
+            'uncategorized-rename-modal'
+        ];
+        
+        dynamicModals.forEach(modalId => {
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                document.body.removeChild(modal);
+            }
+        });
+        
+        // Clean up temporary variables
+        delete window.uncategorizedRename;
+        delete window.selectedExportCategories;
+    }
+    
+    function setupModalCloseHandlers(modalId) {
+        const modal = document.getElementById(modalId);
+        if (!modal) return;
+        
+        // Handle close button clicks
+        const closeButtons = modal.querySelectorAll('[data-modal-close]');
+        closeButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                closeModal(modalId);
+                // Clean up dynamic modals
+                if (['css-export-selection-modal', 'json-export-selection-modal', 'uncategorized-rename-modal'].includes(modalId)) {
+                    setTimeout(() => {
+                        if (document.getElementById(modalId)) {
+                            document.body.removeChild(document.getElementById(modalId));
+                        }
+                    }, 300);
+                }
+                // Clean up temporary variables when closing code modal
+                if (modalId === 'code-modal') {
+                    delete window.selectedExportCategories;
+                }
+            });
+        });
+        
+        // Handle escape key
+        const handleEscape = (e) => {
+            if (e.key === 'Escape' && modal.classList.contains('visible')) {
+                closeModal(modalId);
+                if (['css-export-selection-modal', 'json-export-selection-modal', 'uncategorized-rename-modal'].includes(modalId)) {
+                    setTimeout(() => {
+                        if (document.getElementById(modalId)) {
+                            document.body.removeChild(document.getElementById(modalId));
+                        }
+                    }, 300);
+                }
+                // Clean up temporary variables when closing code modal
+                if (modalId === 'code-modal') {
+                    delete window.selectedExportCategories;
+                }
+                document.removeEventListener('keydown', handleEscape);
+            }
+        };
+        document.addEventListener('keydown', handleEscape);
+    }
 
     function openVariableModal(id = null, isDuplicating = false) {
         dom.variableForm.reset();
@@ -817,33 +897,303 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- IMPORT/EXPORT/CODE MODAL ---
     function openCodeImportModal() {
-        openCodeModal(
-            'Import CSS Variables',
-            'Paste CSS code below. They will be parsed and added to "Uncategorized".',
-            ':root {\n  --brand-primary: #70D6FF;\n  --text-color: #EBE9E6;\n}',
-            [ { label: 'Cancel', class: 'btn-secondary', action: () => closeModal('code-modal') }, { label: 'Import Variables', class: 'btn-primary', action: handleCssImport } ]
-        );
+        // Always get fresh category options
+        const categoryOptions = state.data.categories
+            .map(c => `<option value="${c.id}">${c.name}</option>`)
+            .join('');
+            
+        const modalContent = `
+            <div class="modal" style="max-width: 800px;">
+                <div class="modal-header">
+                    <h3>Import CSS Variables</h3>
+                    <button class="close-btn" data-modal-close>×</button>
+                </div>
+                
+                <p style="margin-bottom: 1rem;">Paste CSS code below. Variables will be parsed and added to the selected category.</p>
+                
+                <div class="category-selection-group">
+                    <label for="css-import-category-select">Select destination category:</label>
+                    <div class="custom-select-wrapper">
+                        <select id="css-import-category-select" class="custom-select">
+                            ${categoryOptions}
+                        </select>
+                    </div>
+                    <div class="category-selection-help">Default: Uncategorized</div>
+                </div>
+                
+                <textarea id="css-editor"></textarea>
+                
+                <div class="modal-actions">
+                    <button type="button" class="main-btn btn-secondary" data-modal-close>Cancel</button>
+                    <button type="button" class="main-btn btn-primary" id="css-import-btn">Import Variables</button>
+                </div>
+            </div>
+        `;
+        
+        // Clean up existing CodeMirror instance
+        if (cssEditor) {
+            cssEditor.toTextArea();
+            cssEditor = null;
+        }
+        
+        document.getElementById('code-modal').innerHTML = modalContent;
+        openModal('code-modal');
+        
+        // Setup modal close handlers
+        setupModalCloseHandlers('code-modal');
+        
+        // Always initialize fresh CodeMirror
+        cssEditor = CodeMirror.fromTextArea(document.getElementById('css-editor'), {
+            mode: 'css',
+            theme: 'dracula',
+            lineNumbers: true,
+        });
+        
+        cssEditor.setValue(':root {\n  --brand-primary: #70D6FF;\n  --text-color: #EBE9E6;\n}');
+        
+        // Set default to uncategorized
+        document.getElementById('css-import-category-select').value = 'uncategorized';
+        
+        // Setup import handler
+        document.getElementById('css-import-btn').onclick = handleCssImportWithCategory;
+        
+        setTimeout(() => cssEditor.refresh(), 1);
     }
     
     function openCodeExportModal() {
-        let cssString = ':root {\n';
-        const categoriesInOrder = [{id: 'uncategorized', name: 'Uncategorized'}, ...state.data.categories.filter(c => c.id !== 'uncategorized')];
+        showCssExportCategorySelection();
+    }
+
+    function showCssExportCategorySelection() {
+        // Clean up any existing modal
+        const existingModal = document.getElementById('css-export-selection-modal');
+        if (existingModal) {
+            document.body.removeChild(existingModal);
+        }
         
-        categoriesInOrder.forEach(cat => {
-            const varsInCategory = state.data.variables.filter(v => v.category === cat.id);
-            if(varsInCategory.length > 0) {
-                cssString += `\n  /* ${cat.name} */\n`;
+        // Always get fresh category data
+        const categoriesWithVars = state.data.categories
+            .map(cat => ({
+                ...cat,
+                varCount: state.data.variables.filter(v => v.category === cat.id).length
+            }))
+            .filter(cat => cat.varCount > 0);
+
+        if (categoriesWithVars.length === 0) {
+            showToast('No categories with variables to export.', 'info');
+            return;
+        }
+
+        const modalContent = `
+            <div class="modal">
+                <div class="modal-header">
+                    <h3>Export CSS Variables</h3>
+                    <button class="close-btn" data-modal-close>×</button>
+                </div>
+                
+                <p style="margin-bottom: 1rem;">Select which categories to include in the CSS export:</p>
+                
+                <div class="category-export-list">
+                    <div class="category-export-header">
+                        <label>
+                            <input type="checkbox" id="select-all-css-export" checked>
+                            Select All Categories
+                        </label>
+                    </div>
+                    
+                    ${categoriesWithVars.map(cat => `
+                        <label class="category-export-item">
+                            <div class="category-export-left">
+                                <input type="checkbox" class="css-export-category-checkbox"
+                                        data-category-id="${cat.id}" checked>
+                                <span class="category-export-name">${cat.name}</span>
+                            </div>
+                            <span class="category-export-count">${cat.varCount} variables</span>
+                        </label>
+                    `).join('')}
+                </div>
+                
+                <div class="modal-actions">
+                    <button type="button" class="main-btn btn-secondary" data-modal-close>Cancel</button>
+                    <button type="button" class="main-btn btn-primary" id="proceed-css-export-btn">Continue</button>
+                </div>
+            </div>
+        `;
+        
+        // Create and show modal
+        const modalEl = document.createElement('div');
+        modalEl.className = 'modal-overlay';
+        modalEl.id = 'css-export-selection-modal';
+        modalEl.innerHTML = modalContent;
+        document.body.appendChild(modalEl);
+        
+        openModal('css-export-selection-modal');
+        
+        // Setup modal close handlers
+        setupModalCloseHandlers('css-export-selection-modal');
+        
+        // Setup event handlers
+        setupCssExportSelectionHandlers();
+    }
+
+    function setupCssExportSelectionHandlers() {
+        const selectAllCheckbox = document.getElementById('select-all-css-export');
+        const categoryCheckboxes = document.querySelectorAll('.css-export-category-checkbox');
+        const proceedBtn = document.getElementById('proceed-css-export-btn');
+        
+        // Select all functionality
+        selectAllCheckbox.addEventListener('change', (e) => {
+            categoryCheckboxes.forEach(cb => cb.checked = e.target.checked);
+        });
+        
+        // Individual checkbox changes
+        categoryCheckboxes.forEach(cb => {
+            cb.addEventListener('change', () => {
+                const allChecked = Array.from(categoryCheckboxes).every(cb => cb.checked);
+                selectAllCheckbox.checked = allChecked;
+            });
+        });
+        
+        // Proceed with export
+        proceedBtn.addEventListener('click', () => {
+            const selectedCategories = Array.from(categoryCheckboxes)
+                .filter(cb => cb.checked)
+                .map(cb => cb.dataset.categoryId);
+                
+            if (selectedCategories.length === 0) {
+                showToast('Please select at least one category to export.', 'error');
+                return;
+            }
+                
+            closeModal('css-export-selection-modal');
+            const modalEl = document.getElementById('css-export-selection-modal');
+            if (modalEl) {
+                document.body.removeChild(modalEl);
+            }
+                
+            proceedWithCssExport(selectedCategories);
+        });
+    }
+
+    function proceedWithCssExport(selectedCategoryIds) {
+        // Store selected categories for the final modal
+        window.selectedExportCategories = selectedCategoryIds;
+        
+        // Create category options for the final modal
+        const allCategoriesOption = '<option value="all">All Categories</option>';
+        const categoryOptions = selectedCategoryIds
+            .map(catId => {
+                const category = state.data.categories.find(c => c.id === catId);
+                return `<option value="${catId}">${category.name}</option>`;
+            })
+            .join('');
+        
+        // Generate initial CSS for all categories
+        let initialCssString = generateCssForCategories(selectedCategoryIds);
+        
+        const modalContent = `
+            <div class="modal" style="max-width: 800px;">
+                <div class="modal-header">
+                    <h3>Export CSS Variables</h3>
+                    <button class="close-btn" data-modal-close>×</button>
+                </div>
+                
+                <div class="category-selection-group">
+                    <label for="css-export-category-filter">View categories:</label>
+                    <div class="custom-select-wrapper">
+                        <select id="css-export-category-filter" class="custom-select">
+                            ${allCategoriesOption}
+                            ${categoryOptions}
+                        </select>
+                    </div>
+                    <div class="category-selection-help">Select which categories to display in the code editor</div>
+                </div>
+                
+                <textarea id="css-editor"></textarea>
+                
+                <div class="modal-actions">
+                    <button type="button" class="main-btn btn-secondary" data-modal-close>Cancel</button>
+                    <button type="button" class="main-btn btn-secondary" id="copy-css-btn">Copy to Clipboard</button>
+                    <button type="button" class="main-btn btn-primary" id="download-css-btn">Download .css file</button>
+                </div>
+            </div>
+        `;
+        
+        // Clean up existing CodeMirror instance
+        if (cssEditor) {
+            cssEditor.toTextArea();
+            cssEditor = null;
+        }
+        
+        document.getElementById('code-modal').innerHTML = modalContent;
+        openModal('code-modal');
+        
+        // Setup modal close handlers
+        setupModalCloseHandlers('code-modal');
+        
+        // Initialize CodeMirror
+        cssEditor = CodeMirror.fromTextArea(document.getElementById('css-editor'), {
+            mode: 'css',
+            theme: 'dracula',
+            lineNumbers: true,
+        });
+        
+        cssEditor.setValue(initialCssString);
+        
+        // Setup category filter change handler
+        document.getElementById('css-export-category-filter').addEventListener('change', (e) => {
+            const selectedValue = e.target.value;
+            let newCssString;
+            
+            if (selectedValue === 'all') {
+                newCssString = generateCssForCategories(window.selectedExportCategories);
+            } else {
+                newCssString = generateCssForCategories([selectedValue]);
+            }
+            
+            cssEditor.setValue(newCssString);
+        });
+        
+        // Setup action buttons
+        document.getElementById('copy-css-btn').addEventListener('click', () => {
+            navigator.clipboard.writeText(cssEditor.getValue());
+            showToast('CSS copied to clipboard!', 'success');
+        });
+        
+        document.getElementById('download-css-btn').addEventListener('click', () => {
+            const cssString = cssEditor.getValue();
+            const blob = new Blob([cssString], { type: 'text/css' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'bricks-variables.css';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showToast('CSS file download initiated.', 'success');
+        });
+        
+        setTimeout(() => cssEditor.refresh(), 1);
+    }
+    
+    function generateCssForCategories(categoryIds) {
+        let cssString = ':root {\n';
+        
+        categoryIds.forEach(catId => {
+            const category = state.data.categories.find(c => c.id === catId);
+            const varsInCategory = state.data.variables.filter(v => v.category === catId);
+            
+            if (varsInCategory.length > 0) {
+                cssString += `\n  /* ${category.name} */\n`;
                 varsInCategory.forEach(v => {
-                    cssString += `  --${v.name}: ${v.value};\n`; 
+                    cssString += `  --${v.name}: ${v.value};\n`;
                 });
             }
         });
+        
         cssString += '\n}';
-
-        openCodeModal(
-            'Export CSS Variables', 'Copy the variables below or download the CSS file.', cssString,
-            [ { label: 'Copy to Clipboard', class: 'btn-secondary', action: () => { navigator.clipboard.writeText(cssEditor.getValue()); showToast('CSS copied to clipboard!', 'success'); } }, { label: 'Download .css file', class: 'btn-primary', action: downloadCssFile } ]
-        );
+        return cssString;
     }
 
     function openCodeModal(title, description, content, actions) {
@@ -859,9 +1209,16 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         openModal('code-modal');
+        
+        // Always ensure fresh CodeMirror instance
         if (!cssEditor) {
-            cssEditor = CodeMirror.fromTextArea(dom.cssEditorEl, { mode: 'css', theme: 'dracula', lineNumbers: true, });
+            cssEditor = CodeMirror.fromTextArea(dom.cssEditorEl, { 
+                mode: 'css', 
+                theme: 'dracula', 
+                lineNumbers: true 
+            });
         }
+        
         cssEditor.setValue(content);
         setTimeout(() => cssEditor.refresh(), 1);
     }
@@ -885,20 +1242,46 @@ document.addEventListener('DOMContentLoaded', () => {
         if (newVarsCount > 0) saveAndRender(`${newVarsCount} new variables imported.`);
         else showToast('No new variables found to import.', 'info');
     }
-    
-    function downloadCssFile() {
-        const cssString = cssEditor.getValue();
-        const blob = new Blob([cssString], { type: 'text/css' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'bricks-variables.css';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-        showToast('CSS file download initiated.', 'success');
+
+    function handleCssImportWithCategory() {
+        const cssText = cssEditor.getValue();
+        const selectedCategoryId = document.getElementById('css-import-category-select').value;
+        
+        if (!cssText.trim()) {
+            showToast('Please provide CSS code to import.', 'error');
+            return;
+        }
+        
+        const regex = /--([a-zA-Z0-9-]+)\s*:\s*([^;]+)/g;
+        let match;
+        let newVarsCount = 0;
+        
+        while((match = regex.exec(cssText)) !== null) {
+            const name = match[1].trim();
+            const value = match[2].trim();
+            
+            if (!state.data.variables.some(v => v.name === name)) {
+                state.data.variables.push({
+                    id: generateId(),
+                    name,
+                    value,
+                    category: selectedCategoryId
+                });
+                newVarsCount++;
+            }
+        }
+        
+        closeModal('code-modal');
+        
+        if (newVarsCount > 0) {
+            const categoryName = state.data.categories.find(c => c.id === selectedCategoryId)?.name || 'Unknown';
+            saveAndRender(`${newVarsCount} variables imported to "${categoryName}".`);
+        } else {
+            showToast('No new variables found to import.', 'info');
+        }
     }
+    
+
 
     function openJsonImportModal() { openModal('import-json-modal'); }
     
@@ -930,6 +1313,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 state.activeCategoryId = 'all';
                 clearSelection();
                 clearCategorySelection();
+                cleanupDynamicModals(); // Clean up any open modals since categories changed
                 saveAndRender('JSON data imported successfully!');
                 closeModal('import-json-modal');
             } catch(err) {
@@ -941,22 +1325,240 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     function exportAsJson() {
-        // *** THIS IS THE MODIFIED PART ***
-        // Instead of wrapping state.data in another object, we use it directly.
-        const dataToExport = state.data;
+        const uncategorizedVars = state.data.variables.filter(v => v.category === 'uncategorized');
+        
+        if (uncategorizedVars.length > 0) {
+            // First, handle uncategorized renaming
+            showUncategorizedRenameModal(() => {
+                showJsonExportCategorySelection();
+            });
+        } else {
+            // No uncategorized variables, go straight to category selection
+            showJsonExportCategorySelection();
+        }
+    }
 
+    function showUncategorizedRenameModal(callback) {
+        // Clean up any existing modal
+        const existingModal = document.getElementById('uncategorized-rename-modal');
+        if (existingModal) {
+            document.body.removeChild(existingModal);
+        }
+        
+        const modalContent = `
+            <div class="modal">
+                <div class="modal-header">
+                    <h3>Rename Uncategorized Category</h3>
+                    <button class="close-btn" data-modal-close>×</button>
+                </div>
+                
+                <p style="margin-bottom: 1rem;">You have variables in the "Uncategorized" category. To prevent conflicts when importing into Bricks, please provide a name for this category:</p>
+                
+                <div class="form-group">
+                    <label for="uncategorized-rename-input">Category Name</label>
+                    <input type="text" id="uncategorized-rename-input"
+                            class="form-control"
+                           placeholder="e.g., General, Imported, Miscellaneous"
+                           value="General Variables">
+                </div>
+                
+                <div class="modal-actions">
+                    <button type="button" class="main-btn btn-secondary" data-modal-close>Cancel</button>
+                    <button type="button" class="main-btn btn-primary" id="confirm-rename-btn">Continue</button>
+                </div>
+            </div>
+        `;
+        
+        const modalEl = document.createElement('div');
+        modalEl.className = 'modal-overlay';
+        modalEl.id = 'uncategorized-rename-modal';
+        modalEl.innerHTML = modalContent;
+        document.body.appendChild(modalEl);
+        
+        openModal('uncategorized-rename-modal');
+        
+        // Setup modal close handlers
+        setupModalCloseHandlers('uncategorized-rename-modal');
+        
+        // Handle confirm button
+        document.getElementById('confirm-rename-btn').onclick = () => {
+            const newName = document.getElementById('uncategorized-rename-input').value.trim();
+            if (!newName) {
+                showToast('Please provide a category name.', 'error');
+                return;
+            }
+                
+            closeModal('uncategorized-rename-modal');
+            const modalToRemove = document.getElementById('uncategorized-rename-modal');
+            if (modalToRemove) {
+                document.body.removeChild(modalToRemove);
+            }
+                
+            // Store the rename for later use
+            window.uncategorizedRename = newName;
+            callback();
+        };
+    }
+
+    function showJsonExportCategorySelection() {
+        // Clean up any existing modal
+        const existingModal = document.getElementById('json-export-selection-modal');
+        if (existingModal) {
+            document.body.removeChild(existingModal);
+        }
+        
+        // Always get fresh category data
+        const categoriesWithVars = state.data.categories
+            .map(cat => ({
+                ...cat,
+                varCount: state.data.variables.filter(v => v.category === cat.id).length,
+                displayName: cat.id === 'uncategorized' && window.uncategorizedRename ?
+                              window.uncategorizedRename : cat.name
+            }))
+            .filter(cat => cat.varCount > 0);
+
+        if (categoriesWithVars.length === 0) {
+            showToast('No categories with variables to export.', 'info');
+            return;
+        }
+
+        const modalContent = `
+            <div class="modal">
+                <div class="modal-header">
+                    <h3>Select Categories to Export</h3>
+                    <button class="close-btn" data-modal-close>×</button>
+                </div>
+                
+                <p style="margin-bottom: 1rem;">Choose which categories to include in the JSON export:</p>
+                
+                <div class="category-export-list">
+                    <div class="category-export-header">
+                        <label>
+                            <input type="checkbox" id="select-all-json-export" checked>
+                            Select All Categories
+                        </label>
+                    </div>
+                    
+                    ${categoriesWithVars.map(cat => `
+                        <label class="category-export-item">
+                            <div class="category-export-left">
+                                <input type="checkbox" class="json-export-category-checkbox"
+                                        data-category-id="${cat.id}" checked>
+                                <span class="category-export-name">${cat.displayName}</span>
+                            </div>
+                            <span class="category-export-count">${cat.varCount} variables</span>
+                        </label>
+                    `).join('')}
+                </div>
+                
+                <div class="modal-actions">
+                    <button type="button" class="main-btn btn-secondary" data-modal-close>Cancel</button>
+                    <button type="button" class="main-btn btn-primary" id="confirm-json-export-btn">Export Selected</button>
+                </div>
+            </div>
+        `;
+        
+        const modalEl = document.createElement('div');
+        modalEl.className = 'modal-overlay';
+        modalEl.id = 'json-export-selection-modal';
+        modalEl.innerHTML = modalContent;
+        document.body.appendChild(modalEl);
+        
+        openModal('json-export-selection-modal');
+        
+        // Setup modal close handlers
+        setupModalCloseHandlers('json-export-selection-modal');
+        
+        setupJsonExportSelectionHandlers();
+    }
+
+    function setupJsonExportSelectionHandlers() {
+        const selectAllCheckbox = document.getElementById('select-all-json-export');
+        const categoryCheckboxes = document.querySelectorAll('.json-export-category-checkbox');
+        const confirmBtn = document.getElementById('confirm-json-export-btn');
+        
+        // Select all functionality
+        selectAllCheckbox.addEventListener('change', (e) => {
+            categoryCheckboxes.forEach(cb => cb.checked = e.target.checked);
+        });
+        
+        // Individual checkbox changes
+        categoryCheckboxes.forEach(cb => {
+            cb.addEventListener('change', () => {
+                const allChecked = Array.from(categoryCheckboxes).every(cb => cb.checked);
+                selectAllCheckbox.checked = allChecked;
+            });
+        });
+        
+        // Confirm export
+        confirmBtn.addEventListener('click', () => {
+            const selectedCategories = Array.from(categoryCheckboxes)
+                .filter(cb => cb.checked)
+                .map(cb => cb.dataset.categoryId);
+                
+            if (selectedCategories.length === 0) {
+                showToast('Please select at least one category to export.', 'error');
+                return;
+            }
+                
+            closeModal('json-export-selection-modal');
+            const modalEl = document.getElementById('json-export-selection-modal');
+            if (modalEl) {
+                document.body.removeChild(modalEl);
+            }
+                
+            proceedWithJsonExport(selectedCategories);
+        });
+    }
+
+    function proceedWithJsonExport(selectedCategoryIds) {
+        // Prepare export data
+        const exportCategories = [];
+        const exportVariables = [];
+        
+        selectedCategoryIds.forEach(catId => {
+            const category = state.data.categories.find(c => c.id === catId);
+            const categoryVars = state.data.variables.filter(v => v.category === catId);
+            
+            if (category && categoryVars.length > 0) {
+                // Handle uncategorized rename
+                const exportCategory = {
+                    ...category,
+                    name: catId === 'uncategorized' && window.uncategorizedRename ?
+                           window.uncategorizedRename : category.name
+                };
+                
+                exportCategories.push(exportCategory);
+                exportVariables.push(...categoryVars);
+            }
+        });
+        
+        // Ensure we have the uncategorized category if needed
+        if (!exportCategories.some(c => c.id === 'uncategorized')) {
+            exportCategories.unshift({ id: 'uncategorized', name: 'Uncategorized' });
+        }
+        
+        const dataToExport = {
+            categories: exportCategories,
+            variables: exportVariables
+        };
+        
+        // Download the file
         const dataStr = JSON.stringify(dataToExport, null, 2);
         const blob = new Blob([dataStr], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        // Updated filename for clarity
         a.download = 'bricks-variables.json';
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
-        showToast('Bricks variables JSON file exported.', 'success');
+        
+        // Clean up temporary rename
+        delete window.uncategorizedRename;
+        
+        showToast('Selected categories exported successfully!', 'success');
     }
 
 
