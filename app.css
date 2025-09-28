@@ -216,6 +216,7 @@ input[type="checkbox"]:checked::before {
   transition: all 0.2s;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
 }
 .btn-primary {
