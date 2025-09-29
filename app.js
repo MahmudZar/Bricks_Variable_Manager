@@ -1626,22 +1626,39 @@ document.addEventListener('DOMContentLoaded', () => {
             const categoryVars = state.data.variables.filter(v => v.category === catId);
             
             if (category && categoryVars.length > 0) {
-                // Handle uncategorized rename
-                const exportCategory = {
-                    ...category,
-                    name: catId === 'uncategorized' && window.uncategorizedRename ?
-                           window.uncategorizedRename : category.name
-                };
+                // When uncategorized is renamed, create a new category with a unique ID
+                const isUncategorizedRenamed = catId === 'uncategorized' && window.uncategorizedRename;
+                
+                let exportCategory;
+                let exportCategoryId;
+                
+                if (isUncategorizedRenamed) {
+                    // Generate a new unique ID for the renamed uncategorized category
+                    exportCategoryId = generateId();
+                    exportCategory = {
+                        id: exportCategoryId,
+                        name: window.uncategorizedRename
+                    };
+                } else {
+                    // For all other categories, export as-is
+                    exportCategoryId = category.id;
+                    exportCategory = { ...category };
+                }
                 
                 exportCategories.push(exportCategory);
-                exportVariables.push(...categoryVars);
+                
+                // Map variables to the export category ID
+                const mappedVars = categoryVars.map(v => ({
+                    ...v,
+                    category: exportCategoryId
+                }));
+                
+                exportVariables.push(...mappedVars);
             }
         });
         
-        // Ensure we have the uncategorized category if needed
-        if (!exportCategories.some(c => c.id === 'uncategorized')) {
-            exportCategories.unshift({ id: 'uncategorized', name: 'Uncategorized' });
-        }
+        // REMOVED: Do not force-add empty uncategorized category
+        // Uncategorized only appears if it has variables and was selected for export
         
         const dataToExport = {
             categories: exportCategories,
