@@ -67,7 +67,7 @@
   --text-secondary: var(--grey-450);
   --accent-primary: var(--str-secondary-500);
   --accent-secondary: var(--str-primary-500);
-  --accent-danger: var(--rose-600);
+  --accent-danger: var(--rose-400);
   --accent-warning: var(--amber-400);
   --shadow: 0 5px 20px rgba(0, 0, 0, 0.4);
 
@@ -1087,4 +1087,24 @@ input[type="checkbox"]:checked::before {
 
 .hidden-scrollbar::-webkit-scrollbar {
   display: none; /* Chrome, Safari, Opera */
+}
+/* Import Mode Modal Enhancements */
+.import-mode-option input[type="radio"] {
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.import-mode-option:has(input:checked) {
+  border-color: var(--accent-primary) !important;
+  background-color: var(--bg-secondary) !important;
+}
+
+#merge-summary-modal .modal {
+  max-width: 500px;
+}
+
+#merge-summary-modal h4 {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
