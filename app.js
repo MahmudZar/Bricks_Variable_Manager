@@ -116,21 +116,40 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function initializeSplitters() {
-    // Only initialize if not already created
+    // Always destroy existing instance first
     if (splitterInstance) {
       splitterInstance.destroy();
+      splitterInstance = null;
     }
 
-    // Don't initialize splitters if categories panel is hidden (during search)
-    if (dom.categoriesPanel.classList.contains("hidden")) {
+    const isCategoriesHidden = dom.categoriesPanel.classList.contains("hidden");
+    const isPropertiesVisible = dom.propertiesPanel.classList.contains("visible");
+
+    if (isCategoriesHidden && isPropertiesVisible) {
+      // NEW CASE: Search mode with properties panel open
+      // Initialize 2-panel: variables | properties
+      splitterInstance = Split(["#variables-panel", "#properties-panel"], {
+        sizes: [70, 30], // Variables panel gets more space during search
+        minSize: [300, 280], // Maintain minimum readable sizes
+        gutterSize: 8,
+        cursor: "col-resize",
+        direction: "horizontal",
+        onDragEnd: function (sizes) {
+          localStorage.setItem("bricksVarManager-panelSizes-search", JSON.stringify(sizes));
+        },
+      });
+
+      // Restore saved sizes if exist
+      const savedSizes = localStorage.getItem("bricksVarManager-panelSizes-search");
+      if (savedSizes) {
+        splitterInstance.setSizes(JSON.parse(savedSizes));
+      }
+    } else if (isCategoriesHidden && !isPropertiesVisible) {
+      // NEW CASE: Search mode without properties panel
+      // No splitter needed (only variables panel visible)
       return;
-    }
-
-    const propertiesPanel = dom.propertiesPanel;
-    const isPropertiesVisible = propertiesPanel.classList.contains("visible");
-
-    if (isPropertiesVisible) {
-      // Three-panel layout when properties panel is visible
+    } else if (!isCategoriesHidden && isPropertiesVisible) {
+      // EXISTING: Normal 3-panel layout
       splitterInstance = Split(
         ["#categories-panel", "#variables-panel", "#properties-panel"],
         {
@@ -154,8 +173,8 @@ document.addEventListener("DOMContentLoaded", () => {
       if (savedSizes) {
         splitterInstance.setSizes(JSON.parse(savedSizes));
       }
-    } else {
-      // Two-panel layout when properties panel is hidden
+    } else if (!isCategoriesHidden && !isPropertiesVisible) {
+      // EXISTING: Normal 2-panel layout
       splitterInstance = Split(["#categories-panel", "#variables-panel"], {
         sizes: [30, 70], // Initial percentages
         minSize: [250, 300], // Minimum sizes
@@ -645,6 +664,10 @@ document.addEventListener("DOMContentLoaded", () => {
         splitterInstance = null;
       }
       dom.categoriesPanel.classList.add("hidden");
+      // Reinitialize splitter for search mode
+      setTimeout(() => {
+        initializeSplitters();
+      }, 50); // Small delay to ensure DOM updates
     } else {
       // Showing: animate first, then reinitialize splitter
       dom.categoriesPanel.classList.remove("hidden");
